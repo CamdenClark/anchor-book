@@ -4,7 +4,7 @@
 
 ## Introduction
 
-- [What is Solana?](introduction/solana.md)
+- [What are Solana and Anchor?](introduction/solana-and-anchor.md)
 - [Prerequisites and Installation](introduction/prerequisites.md)
 
 ## Programs
