@@ -6,6 +6,7 @@
 
 - [What are Solana and Anchor?](introduction/solana-and-anchor.md)
 - [Prerequisites and Installation](introduction/prerequisites.md)
+- [Decentralized Application Structure](introduction/dapp-structure.md)
 
 ## Programs
 

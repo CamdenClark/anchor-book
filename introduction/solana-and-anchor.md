@@ -4,7 +4,7 @@ Solana, at its core, is a public proof-of-stake blockchain with some really key 
 
 [The Solana docs](https://docs.solana.com/cluster/overview) explain the core architecture in detail.
 
-For our purposes, developers are able to deploy programs onto this blockchain. These programs form the foundation for decentralized applications, spanning
+For our purposes, developers are able to deploy programs onto this blockchain. These programs form the foundation for decentralized applications, powering
 use cases from DeFi to NFTs.
 
 # What is Anchor?
