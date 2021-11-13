@@ -48,10 +48,16 @@ Similar to Rust itself, Anchor has a prelude. This imports all the pieces of the
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 ```
 
-`declare_id!` declares what the program's account id is, and allows for a consistent program id everywhere we deploy this (locally, devnet, testnet, mainnet-beta).
-Note that if we actually deploy this, anchor would instead pick a different account id, because we will have to generate a new keypair.
+`declare_id!` bakes the program's account id into our program's binary. It allows for a
+consistent program id everywhere we deploy (locally, devnet, testnet, mainnet-beta).
 
-(side-note: This is a piece of anchor I'm still trying to wrap my head around. There's more discussion about a more ergonomic way of doing this [here](https://github.com/project-serum/anchor/issues/695)).
+One other benefit, which we'll get into later, is ensuring that you are calling the right program
+if calling this from another program (see cross-program invocation).
+
+Note that if we actually deploy this, anchor would instead pick a different account id,
+because we will have to generate a new keypair.
+
+(There's discussion about a more ergonomic way of doing this [here](https://github.com/project-serum/anchor/issues/695)).
 
 ```rust
 #[program]
@@ -109,8 +115,9 @@ You'll see the following:
 
 The most important thing listed here is the set of instructions. Anchor has used the program definition we
 created above to generate this IDL. We have one instruction, with name `initialize` (the same as our
-instruction handler). It has no accounts, as we specified in the `Initialize` struct, and no `args`,
-which we have because the `initialize` instruction handler only takes in one argument (`_ctx`).
+instruction handler). It has an empty set of accounts because we didn't specify any in the `Initialize` account
+context struct. The IDL also has an empty set of `args` because the `initialize` instruction handler only takes
+in the context, and hasn't specified any other parameters.
 
 This file is the key bridge between your anchor program and consuming it in the client and integration tests.
 It is how anchor's frontend utilities know how to call your program.
@@ -123,43 +130,40 @@ make changes. Even more problematic is that as we develop more complicated appli
 will get more and more difficult to maintain the scaffold of state needed to test complicated
 scenarios.
 
-Anchor has a solution for this: `anchor test`. Let's take a look at `./tests/first-program.js`
+Anchor has a solution for this: `anchor test`. Let's take a look at `./tests/first-program.ts`
 
 ```js
-const anchor = require("@project-serum/anchor");
+import * as anchor from "@project-serum/anchor";
 
 describe("first-program", () => {
   // Configure the client to use the local cluster.
-  anchor.setProvider(anchor.Provider.local());
+  anchor.setProvider(anchor.Provider.env());
 
-  it("Uses the workspace to invoke the initialize instruction", async () => {
-    // #region code
-    // Read the deployed program from the workspace.
-    const program = anchor.workspace.Basic0;
-
-    // Execute the RPC.
-    await program.rpc.initialize();
-    // #endregion code
+  it("Is initialized!", async () => {
+    // Add your test here.
+    const program = anchor.workspace.FirstProgram;
+    const tx = await program.rpc.initialize();
+    console.log("Your transaction signature", tx);
   });
 });
 ```
 
-First, we import anchor. Then, we define a test block. We set up anchor to use the local
+First, we import anchor and define a test block. We then set up anchor to use the local
 provider.
 
-#### SHARP EDGE ALERT
+Anchor has a "workspace" feature which will load in the IDL at runtime and provide us
+with tooling to interact with our program. Then, we can do the exact same call we did
+in the client, `await program.rpc.initialize();`
 
-`anchor.workspace.Basic0` is loaded into the test environment for us. I'm really not sure
-exactly how the workspace feature works yet, but changing the program can generate a different
-idl that wouldn't be represented here. Just be careful when making changes to the name of
-your program module and make sure the tests represent that.
+{% hint style="warning" %}
+`anchor.workspace.FirstProgram` is loaded into the test environment for us. Changing the
+program can generate a different IDL that wouldn't be represented here. Be careful when
+making changes to the name of your program module and make sure the tests represent that.
 
-Anyways, this does all the work for us we did in the client previously. So, now we can just
-do the exact same call we did in the client, `await program.rpc.initialize();`
+Also, the workspace feature is currently only available within the context of `anchor test`.
+Don't use this one in your frontend code.
+{% endhint %}
 
 The test framework here gives you more flexibility to specify different account ids programmatically,
-and make sure that you're always starting with fresh state on each test run.
-
-Thanks for reading all, it's been fun to learn anchor and rust over the past couple months. The
-docs were a big inhibitor for me so I'd like to do more of these deep dives to illuminate the way
-for anchor.
+and make sure that you're always starting with fresh state on each test run. We'll be using
+this tool to help us iterate quickly on our Anchor programs throughout this book.
