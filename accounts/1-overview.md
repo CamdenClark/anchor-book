@@ -1,74 +1,205 @@
-# Solana's account model
+# Extending our first program
 
-Solana's account model is the most important part of understanding how to write
-programs, so strap in!
+The first program that we generated with `anchor init` doesn't really _do_
+anything.
 
-Accounts are how you store persistent data on the Solana blockchain. When creating
-an account, you have to declare a size in bytes, and you can store arbitrary binary
-data inside those bytes.
+When you call the `initialize` instruction, nothing about the state of the
+blockchain really changes, except the fact that we called the instruction.
 
-From the [Solana docs](https://docs.solana.com/developing/programming-model/accounts#executable):
+What if we wanted to build a simple counter on the Solana blockchain? How would
+we be able to initialize the counter, then increment the counter later, and have
+all that data be stored on the blockchain?
 
-> Accounts are similar to files in operating systems such as Linux in that they may hold arbitrary data
-> that persists beyond the lifetime of a program. Also like a file, an account includes metadata that
-> tells the runtime who is allowed to access the data and how.
+In this section, we'll build a program that can do that.
 
-Another way of thinking about accounts is that the Solana blockchain is a giant hash-map,
-with accounts as the keys, and the account data as the value.
+We mentioned earlier that programs are accounts marked executable. Specifically,
+the data that the account holds is the program's compiled bytecode.
 
-Solana assigns public keys (from the ed25519 curve) as the address of the account. The address would
-be similar to, in the analogy of the filesystem, would be the file path for an account on the Solana
-blockchain.
+We can also use accounts to store any binary data we want. So, here, we'll use
+an account to store the data for the counter.
 
-### Ownership and Authority
+# Getting started
 
-**Accounts can only be owned by programs!** Accounts are owned by the system program by default.
-The system program is a built-in program to the Solana runtime. The system program allows clients
-to transfer lamports and change the owner of an account to another program id.
+Let's start fresh with a new project.
 
-Accounts can be assigned a new owner only if the account is writable, not executable, and the data is
-zero-initialized or empty.
+```bash
+anchor init simple-counter --typescript
+```
 
-If a program doesn't own an account, the program can only read data and send lamports into the account.
-Programs can't take lamports out of an account if they don't own it.
+Like [our first anchor program](../programs/2-program.md), our newly initialized
+simple-counter project has two high-level components, the program itself (at
+`programs/simple-counter/src/lib.rs`) and the integration tests (found at
+`tests/simple-counter.ts`).
 
-Authority is a distinct concept from ownership. Ownership is assigned by the system program as part of
-on-chain data. Authority just means that the account's private key signed the transaction. The account
-is referred to as a "signer" in this case.
+# The program
 
-### Programs
+First, we'll build up the program. Open `programs/simple-counter/src/lib.rs`.
+Remove everything, and paste the following:
 
-We mentioned earlier that programs are just accounts marked executable with their bytecode as data.
-When you deploy a program, you call a special program called the BPF Loader, which marks itself as
-the _owner_ of the executable and program data accounts it creates to store your program.
+```rust
+use anchor_lang::prelude::*;
 
-More info [on deployment](https://docs.solana.com/cli/deploy-a-program),
-[on the BPF Loader](https://docs.solana.com/developing/runtime-facilities/programs#bpf-loader),
-and on [executable accounts](https://docs.solana.com/developing/programming-model/accounts#executable).
+declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
-### Read-only
+#[program]
+pub mod simple_counter {
+    use super::*;
+    pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
+        let counter = &mut ctx.accounts.counter;
+        counter.count = 0;
+        Ok(())
+    }
+}
 
-### Storing Value
+#[derive(Accounts)]
+pub struct Initialize<'info> {
+    #[account(init, payer = user, space = 8 + 8)]
+    pub counter: Account<'info, Counter>,
+    #[account(mut)]
+    pub user: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
 
-Accounts can also store lamports (the smallest unit of SOL). This allows accounts to store value as well
-as arbitrary data.
+#[account]
+pub struct Counter {
+    pub count: u64,
+}
+```
 
-Accounts also [need rent](https://docs.solana.com/developing/programming-model/accounts#rent) in order
-to keep accounts alive. Luckily, if you pay up enough rent for 2 years, you are now _rent-exempt_. Executable
-accounts (programs) are required to be rent-exempt.
+There are two pieces here, the accounts context and the specification of the
+counter account's data. We'll inspect each piece here individually. Let's start
+from the bottom.
 
-We'll talk more about rent later!
+## The Counter struct
 
-# Why this?
+```rust
+#[account]
+pub struct Counter {
+    pub count: u64,
+}
+```
 
-One reason that Solana chose this account model is that it makes parallel processing of transactions
-really fast and easy to reason about. Accounts can be marked as
-[read-only](https://docs.solana.com/developing/programming-model/accounts#read-only) when being
-processed inside transactions. Read-only accounts can be read concurrently by multiple programs.
+Declaring the struct for the counter is how we specify the shape of the data
+that we're using to model our simple counter. We have one property, `count`,
+which will store the current value of the counter for any account.
 
-You can have one program that operates on a lot of different types of accounts.
+You'll notice that this struct has a Rust decorator, `#[account]`. This tells
+anchor that this struct can be used to model an account's data. Under the hood,
+Anchor will serialize and deserialize the data for any account marked with this
+struct into this data structure.
 
-We'll talk more about the SPL Token program later, but this
-[example from an article on Solana is great](https://2501babe.github.io/posts/solana101.html)
+Let's look at that now.
 
-> one advantage of the program/account model is you can have one generic program that operates on various data. the best example of this is the spl token program. to create a new token, you dont need to deploy code like you do on ethereum. you create an account that can mint tokens, and more accounts that can receive them. the mint address uniquely determines the token type, and these are all passed as arguments to one static program instance
+## The Accounts context
+
+```rust
+#[derive(Accounts)]
+pub struct Initialize<'info> {
+    #[account(init, payer = user, space = 8 + 8)]
+    pub counter: Account<'info, Counter>,
+
+    #[account(mut)]
+    pub user: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+```
+
+Above is the accounts context. It describes all the accounts that need to be
+passed in to complete the instruction.
+
+We pass in three different accounts when calling this instruction: the counter,
+the user, and the system program.
+
+### The counter account
+
+The counter is tyepd with `Account<'info, Counter>`, where `Counter` is the
+struct that we described above. This tells Anchor to serialize and deserialize
+the account data in the shape of the `Counter` struct. So, later, when we are
+working on the actual instruction, we'll be able to have access to the data as a
+`Counter`.
+
+### The system_program account
+
+If you look at the `Initialize` instruction handler above, you'll notice that
+the system_program account is never explicitly used.
+
+Try removing the system_program.
+
+You'll see the program won't compile. That's because we've defined, in this
+struct, `counter` as an account that is to be initialized. As a result, anchor
+requires us to include the system_program because the system_program is the
+program capable of initializing accounts.
+
+### The user account
+
+We also don't explicitly use the user account in the instruction handler for
+`Initialize`. Let's try removing it (along with the `#[account(mut)])`
+attribute).
+
+This won't compile either. That's because the account that's paying for the rent
+is the user, so we'll get a compilation error.
+
+The type of the user account isn't `Program` or `Account`, it's `Signer`. The
+Signer struct just tells anchor that the user account has signed the
+transaction, but shouldn't get or deserialize the data on the account (because
+we don't need to access that data).
+
+## The instruction handler
+
+Finally, we have the instruction handler:
+
+```rust
+pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
+	let counter = &mut ctx.accounts.counter;
+	counter.count = 0;
+	Ok(())
+}
+```
+
+The name of this instruction is `initialize`. On the client, we'll be able to
+call this business logic by calling the initialize instruction.
+
+### The `ctx` parameter
+
+This method only has one parameter, `ctx`, with type `Context<Initialize>`. You
+can go to `Context` in your editor. What's happening here is that anchor injects
+all things known about this instruction's context into this parameter. We have
+to specify the `Initialize` account context that we created earlier because that
+tells Anchor the _full list_ of accounts that need to be accessed in our
+instruction.
+
+### When you call this instruction
+
+When you actually call this instruction, Anchor will do a bunch of heavy
+lifting:
+
+1. Anchor will make sure that the `user` account is one of the signers of the
+   transaction this instruction is called in (because of the `Signer` type)
+
+1. Anchor will call out to the system program and tell it to initialize the
+   account for the counter. It will call out to the system program and tell it
+   to initialize the account for the counter with `8 + 8` bytes of space in its
+   data, with rent paid by the `user` account.
+
+   {% hint style="info" %} Note that all of this happens because of this
+   decorator: `#[account(init, payer = user, space = 8 + 8)]` {% endhint %}
+
+1. It will deserialize account data for the `counter` into the `Counter` struct
+   that we created earlier
+
+### The business logic
+
+Next, we have the actual business logic of the instruction handler.
+
+What we do here is just get a mutable reference to the counter account's data.
+Notice that `ctx.accounts.counter` has the `Counter` type as we specified below.
+That means that once we grab a mutable reference to `ctx.accounts.counter`, we
+can set its `count` property to 0.
+
+`Ok(())` tells the runtime that the instruction handler was successfully
+invoked.
+
+{% hint style="info" %} In this program we never have to "commit" our changes to
+account data in any way. All we do is mutate the data using our mutable
+reference to the account's data. Anchor will serialize the data back to bytes
+and update the account's data for us. {% endhint %}
