@@ -15,9 +15,9 @@
 
 ## Accounts
 
-- [Overview](accounts/1-initialize.md)
-- [A program with accounts](accounts/2-test.md)
-- [Adding arguments](accounts/3-arguments.md)
+- [Initializing a counter](accounts/1-initialize.md)
+- [Writing a basic test](accounts/2-test.md)
+- [Incrementing the counter](accounts/3-increment.md)
 
 ## Errors
 
