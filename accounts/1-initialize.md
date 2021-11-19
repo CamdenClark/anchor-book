@@ -66,9 +66,7 @@ pub struct Counter {
 }
 ```
 
-There are two pieces here, the accounts context and the specification of the
-counter account's data. We'll inspect each piece here individually. Let's start
-from the bottom.
+We'll inspect each piece here individually. Let's start from the bottom.
 
 ## The Counter struct
 
@@ -97,7 +95,6 @@ Let's look at that now.
 pub struct Initialize<'info> {
     #[account(init, payer = user, space = 8 + 8)]
     pub counter: Account<'info, Counter>,
-
     #[account(mut)]
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
@@ -203,3 +200,6 @@ invoked.
 account data in any way. All we do is mutate the data using our mutable
 reference to the account's data. Anchor will serialize the data back to bytes
 and update the account's data for us. {% endhint %}
+
+Next, we'll move on to writing our integration tests which verify that we have
+initialized our counter correctly.

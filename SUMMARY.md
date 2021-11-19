@@ -15,8 +15,8 @@
 
 ## Accounts
 
-- [Overview](accounts/1-overview.md)
-- [A program with accounts](accounts/2-accounts.md)
+- [Overview](accounts/1-initialize.md)
+- [A program with accounts](accounts/2-test.md)
 - [Adding arguments](accounts/3-arguments.md)
 
 ## Errors
