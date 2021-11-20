@@ -1,2 +1,6 @@
-The counter we created before will let _anyone_ increment itself. But what if we only wanted one
-account to be able to increment...?
+The counter we've built will let _anyone_ call increment after the
+initialization.
+
+But what if we only wanted one account to be able to increment?
+
+# Access control

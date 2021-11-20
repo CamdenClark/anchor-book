@@ -18,6 +18,7 @@
 - [Initializing a counter](accounts/1-initialize.md)
 - [Writing a basic test](accounts/2-test.md)
 - [Incrementing the counter](accounts/3-increment.md)
+- [Initialize the counter to a value](accounts/4-arguments.md)
 
 ## Errors
 
