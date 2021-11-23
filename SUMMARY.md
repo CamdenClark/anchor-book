@@ -19,6 +19,7 @@
 - [Writing a basic test](accounts/2-test.md)
 - [Incrementing the counter](accounts/3-increment.md)
 - [Initialize the counter to a value](accounts/4-arguments.md)
+- [Control access to the counter](accounts/5-access-control.md)
 
 ## Errors
 
