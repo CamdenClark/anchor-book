@@ -20,10 +20,7 @@
 - [Incrementing the counter](accounts/3-increment.md)
 - [Initialize the counter to a value](accounts/4-arguments.md)
 - [Control access to the counter](accounts/5-access-control.md)
-
-## Errors
-
-- [Understanding errors in Anchor](errors/1-errors.md)
+- [Preventing a negative counter](accounts/6-errors.md)
 
 ## Frontend
 
