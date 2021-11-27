@@ -109,3 +109,75 @@ if value >= 100 {
 
 We reference the `ErrorCode::CounterTooHigh` enum value, then cast that into an
 error result.
+
+Now, let's run `anchor test` again.
+
+```
+  4 passing (851ms)
+```
+
+Awesome!
+
+# The final test
+
+We made it so the counter can't be initialized to 100 or above, but we also
+wanted to make it so you can't increment it to 100 or above either. Let's adjust
+our existing tests, then add an additional test for this.
+
+```js
+it("Initializes the counter to 98", async () => {
+  await program.rpc.initialize(new anchor.BN(98), {
+    accounts: {
+      counter: counter.publicKey,
+      user: provider.wallet.publicKey,
+      systemProgram: anchor.web3.SystemProgram.programId,
+    },
+    signers: [counter],
+  });
+
+  const counterData = await program.account.counter.fetch(counter.publicKey);
+
+  assert.ok(counterData.count.eq(new anchor.BN(2)));
+});
+
+it("Increments the counter", async () => {
+  await program.rpc.increment({
+    accounts: {
+      counter: counter.publicKey,
+      authority: provider.wallet.publicKey,
+    },
+  });
+
+  const counterData = await program.account.counter.fetch(counter.publicKey);
+
+  assert.ok(counterData.count.eq(new anchor.BN(99)));
+});
+
+it("Incrementing above 99 fails", async () => {
+  let transactionFailed = false;
+  try {
+    await program.rpc.increment({
+      accounts: {
+        counter: counter.publicKey,
+        authority: provider.wallet.publicKey,
+      },
+    });
+  } catch {
+    transactionFailed = true;
+  }
+
+  assert.ok(transactionFailed);
+});
+```
+
+Now, we can add a similar check in the `increment` instruction handler.
+
+```rust
+if counter.count >= 99 {
+	return Err(ErrorCode::CounterTooHigh.into());
+}
+```
+
+and if we run `anchor test`, we should see all of our tests pass.
+
+... _TODO_: Show passing tests
