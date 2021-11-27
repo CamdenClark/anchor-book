@@ -64,6 +64,11 @@ doesn't match the creator of the counter. This time, instead of setting the
 authority to the `provider.wallet.publicKey`, we generate a new keypair, which
 shouldn't have access to increment the counter.
 
+{% hint style="info" %} You may notice that we include a `try catch` block in
+our test code to surround the transaction call. When sending a transaction, if
+that transaction fails, those errors can be caught just like JS errors.
+{% endhint %}
+
 Finally, we have one change to make so that the tests will actually run. In our
 program, we have to change the account context `Increment` to include the
 authority account.
