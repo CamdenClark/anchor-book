@@ -163,7 +163,7 @@ pub my_account: Account<'info, MyAccount>
 This tells anchor that we have an account here with data. Anchor should expect
 to deserialize the data into a MyAccount object, which we already went over.
 
-# The Update accounts
+# The Update accoun>ts
 
 Very simply, the Update instruction only requires one account, which is the
 original account that we stored the data in. This has the mutable attribute,
