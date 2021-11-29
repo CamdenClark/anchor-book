@@ -1,3 +1,9 @@
+TODO:
+
+- Walk through the tutorial myself
+- Re-write the tests to factor out the logic that initializes the account
+- Add a deploy section
+
 # Extending our first program
 
 The first program that we generated with `anchor init` doesn't really _do_

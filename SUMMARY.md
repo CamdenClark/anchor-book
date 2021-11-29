@@ -10,8 +10,11 @@
 
 ## Your first program
 
-- [Overview](programs/1-overview.md)
-- [Your first Anchor program](programs/2-program.md)
+- [Initializing an Anchor program](first-program/1-init.md)
+- [Breaking down the tests](first-program/2-tests.md)
+- [The IDL](first-program/3-idl.md)
+- [Deployment](first-program/4-deployment.md)
+- [A simple client](first-program/5-client.md)
 
 ## Building a simple counter
 
@@ -38,6 +41,6 @@
 
 ## Constraints
 
-- [Rent](accounts/overview.md)
-- [Space](accounts/overview.md)
-- [Computation](accounts/overview.md)
+- Rent
+- Space
+- Compute

@@ -50,3 +50,10 @@ and each player's first moves.
 
 When you go build your own programs, it's important to keep these kinds of
 tradeoffs in mind!
+
+TODO:
+
+- Initialize tic tac toe
+- Join the game
+- Make a move
+- Frontend
