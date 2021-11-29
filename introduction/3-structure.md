@@ -1,3 +1,8 @@
+TODO:
+
+- Write an intro
+- Draw some diagrams of application infrastructure
+
 {% hint style="info" %} If you're familiar with the architecture of
 decentralized apps on Ethereum, you can probably skip this section.
 {% endhint %}
@@ -49,8 +54,8 @@ Storing hidden data is also not a good idea on the blockchain. Since every
 transaction, and the contents of the data of each transaction, are public
 knowledge, you can't permission _read access_ to program data.
 
-This means applications such as 1-1 direct messaging aren't good candidates for
-Solana.
+This means applications such as 1-1 direct messaging aren't _necessarily_ good
+candidates for Solana.
 
 {% hint style="info" %} You probably could do 1-1 direct messaging if both users
 had shared public PGP keys before messaging and only write encrypted messages
@@ -59,4 +64,6 @@ accounts are posting messages at a certain time. This is more information than
 is exposed to third parties (other than the messaging platform) in centralized
 messaging platforms. {% endhint %}
 
-However, programs can permission _write access_ to account data.
+However, programs can permission _write access_ to account data. This is the
+foundation of having programs on the blockchain: you can make permissioned edits
+to the global state machine!
