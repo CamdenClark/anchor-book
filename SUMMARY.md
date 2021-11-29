@@ -28,6 +28,8 @@
 
 ## Tic-Tac-Toe
 
+- [Modeling the data](tictactoe/1-overview.md)
+
 ## Cross-program invocation
 
 ## Program-derived Accounts
