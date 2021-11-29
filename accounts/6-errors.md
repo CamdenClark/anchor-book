@@ -47,7 +47,7 @@ Let's run `anchor test`.
 
 ```
   1 passing (721ms)
-  3 failing
+  3 failin>g
 
   1) simple-counter
        Initializing counter to 100 or above throws an error:
@@ -148,9 +148,7 @@ it("Increments the counter", async () => {
     },
   });
 
-  const counterData = await program.account.counter.fetch(counter.publicKey);
-
-  assert.ok(counterData.count.eq(new anchor.BN(99)));
+  const counterData = await program.account.counter.fetch(coun>
 });
 
 it("Incrementing above 99 fails", async () => {

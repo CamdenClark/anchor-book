@@ -8,12 +8,12 @@
 - [Prerequisites and Installation](introduction/2-prerequisites.md)
 - [Decentralized Application Structure](introduction/3-structure.md)
 
-## Programs
+## Your first program
 
 - [Overview](programs/1-overview.md)
 - [Your first Anchor program](programs/2-program.md)
 
-## Accounts
+## Building a simple counter
 
 - [Initializing a counter](accounts/1-initialize.md)
 - [Writing a basic test](accounts/2-test.md)
