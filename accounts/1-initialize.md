@@ -26,6 +26,9 @@ Let's start fresh with a new project.
 anchor init simple-counter --typescript
 ```
 
+{% hint style="info" %} You can find the code that covers this section [here]()
+{% endhint %}
+
 Like [our first anchor program](../programs/2-program.md), our newly initialized
 simple-counter project has two high-level components, the program itself (at
 `programs/simple-counter/src/lib.rs`) and the integration tests (found at
@@ -66,9 +69,8 @@ pub struct Counter {
 }
 ```
 
-We'll inspect each piece here individually. Let's start from the bottom.
-
-## The Counter struct
+We'll dissect each piece of this individually. Let's start from the bottom, with
+the `Counter` account struct.
 
 ```rust
 #[account]
@@ -81,10 +83,10 @@ Declaring the struct for the counter is how we specify the shape of the data
 that we're using to model our simple counter. We have one property, `count`,
 which will store the current value of the counter for any account.
 
-You'll notice that this struct has a Rust decorator, `#[account]`. This tells
-anchor that this struct can be used to model an account's data. Under the hood,
-Anchor will serialize and deserialize the data for any account marked with this
-struct into this data structure.
+You'll notice that this struct has a Rust decorator, `#[account]`. This is a
+special Anchor decorator that denotes that this struct can be used to model an
+account's data. Under the hood, Anchor will serialize and deserialize the data
+for any account marked with this struct into this data structure.
 
 Let's look at that now.
 
@@ -101,8 +103,12 @@ pub struct Initialize<'info> {
 }
 ```
 
-Above is the accounts context. It describes all the accounts that need to be
-passed in to complete the instruction.
+Above is the `Initialize` accounts context. It describes all the accounts that
+need to be passed in to complete the instruction. This account context will be
+coupled with our instruction handler.
+
+The account context is the most dense and "magic" part of Anchor: it has a lot
+of power to do things behind the scenes.
 
 We pass in three different accounts when calling this instruction: the counter,
 the user, and the system program.
@@ -120,12 +126,12 @@ working on the actual instruction, we'll be able to have access to the data as a
 If you look at the `Initialize` instruction handler above, you'll notice that
 the system_program account is never explicitly used.
 
-Try removing the system_program.
+Try removing the `system_program`.
 
 You'll see the program won't compile. That's because we've defined, in this
-struct, `counter` as an account that is to be initialized. As a result, anchor
-requires us to include the system_program because the system_program is the
-program capable of initializing accounts.
+struct, `counter` as an account that is to be initialized. As a result, Anchor
+requires us to include the `system_program` account because Anchor needs to use
+the system program to initialize the account.
 
 ### The user account
 
