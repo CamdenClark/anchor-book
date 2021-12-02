@@ -29,10 +29,11 @@ an account to store the data for the counter.
 Let's start fresh with a new project.
 
 ```bash
-anchor init simple-counter --typescript
+anchor init simple-counter
 ```
 
-{% hint style="info" %} You can find the code that covers this section [here]()
+{% hint style="info" %} You can find the code that covers this section
+[here](https://github.com/CamdenClark/anchor-book-code/tree/main/simple-counter-1)
 {% endhint %}
 
 Like [our first anchor program](../programs/2-program.md), our newly initialized
@@ -78,6 +79,8 @@ pub struct Counter {
 We'll dissect each piece of this individually. Let's start from the bottom, with
 the `Counter` account struct.
 
+## The account struct
+
 ```rust
 #[account]
 pub struct Counter {
@@ -85,16 +88,39 @@ pub struct Counter {
 }
 ```
 
-Declaring the struct for the counter is how we specify the shape of the data
-that we're using to model our simple counter. We have one property, `count`,
-which will store the current value of the counter for any account.
+Accounts are how you store persistent data on the Solana blockchain. They can
+store arbitrary binary data.
 
-You'll notice that this struct has a Rust decorator, `#[account]`. This is a
-special Anchor decorator that denotes that this struct can be used to model an
-account's data. Under the hood, Anchor will serialize and deserialize the data
-for any account marked with this struct into this data structure.
+From the
+[Solana docs](https://docs.solana.com/developing/programming-model/accounts#executable):
 
-Let's look at that now.
+> Accounts are similar to files in operating systems such as Linux in that they
+> may hold arbitrary data that persists beyond the lifetime of a program. Also
+> like a file, an account includes metadata that tells the runtime who is
+> allowed to access the data and how.
+
+Public keys (from the ed25519 curve) are the address of the account. The address
+would be, in the analogy of the filesystem, the file path.
+
+Another way of thinking about accounts is that the Solana blockchain is a giant
+hash-map, with account public key as the keys, and the account data as the
+value.
+
+Anchor will do the serialization and deserialization of our data to and from
+binary in our program for us. But we have to tell Anchor what shape of data to
+expect so it can actually do that.
+
+This is the purpose of the `#[account]` Rust decorator. This is a special Anchor
+decorator which says this struct can be used to model an account's data. Under
+the hood, Anchor will serialize and deserialize the data for any account marked
+with this struct into this data structure.
+
+Since we're only implementing a simple counter, all we need is one property,
+which is the `count`. This will store the current value of the counter
+associated with that account.
+
+We'll move on to the account context, which is where we define which accounts
+that our instruction should expect.
 
 ## The Accounts context
 
@@ -110,14 +136,13 @@ pub struct Initialize<'info> {
 ```
 
 Above is the `Initialize` accounts context. It describes all the accounts that
-need to be passed in to complete the instruction. This account context will be
-coupled with our instruction handler.
-
-The account context is the most dense and "magic" part of Anchor: it has a lot
-of power to do things behind the scenes.
+need to be passed in to complete the instruction. Account contexts are typically
+coupled with one instruction handler. The account context is the most dense and
+"magic" part of Anchor: you have a lot of power to do things behind the scenes.
 
 We pass in three different accounts when calling this instruction: the counter,
-the user, and the system program.
+the user, and the system program. We'll go through each and describe what's
+going on behind the scenes for each.
 
 ### The counter account
 
@@ -191,7 +216,13 @@ lifting:
    data, with rent paid by the `user` account.
 
    {% hint style="info" %} Note that all of this happens because of this
-   decorator: `#[account(init, payer = user, space = 8 + 8)]` {% endhint %}
+   decorator:
+
+   ```rust
+   #[account(init, payer = user, space = 8 + 8)]
+   ```
+
+   {% endhint %}
 
 1. It will deserialize account data for the `counter` into the `Counter` struct
    that we created earlier

@@ -1,5 +1,9 @@
 # Composing our tests
 
+{% hint style="info" %} You can find the code that covers this section
+[here](https://github.com/CamdenClark/anchor-book-code/tree/main/simple-counter-1)
+{% endhint %}
+
 Let's look at our tests at `tests/simple-counter.ts`
 
 ```js
@@ -43,26 +47,29 @@ on at each step.
 ```js
 import * as anchor from "@project-serum/anchor";
 
+const provider = anchor.Provider.env();
+anchor.setProvider(provider);
+
+const program = anchor.workspace.SimpleCounter;
+
+const initializeCounter = async () => {
+  const counter = anchor.web3.Keypair.generate();
+
+  await program.rpc.initialize({
+    accounts: {
+      counter: counter.publicKey,
+      user: provider.wallet.publicKey,
+      systemProgram: anchor.web3.SystemProgram.programId,
+    },
+    signers: [counter],
+  });
+
+  return counter.publicKey;
+};
+
 describe("simple-counter", () => {
-  // Configure the client to use the local cluster.
-  const provider = anchor.Provider.env();
-  anchor.setProvider(provider);
-
-  it("Is initialized!", async () => {
-    // Add your test here.
-    const program = anchor.workspace.SimpleCounter;
-
-    const counter = anchor.web3.Keypair.generate();
-
-    const tx = await program.rpc.initialize({
-      accounts: {
-        counter: counter.publicKey,
-        user: provider.wallet.publicKey,
-        systemProgram: anchor.web3.SystemProgram.programId,
-      },
-      signers: [counter],
-    });
-    console.log("Your transaction signature", tx);
+  it("Gets initialized!", async () => {
+    const counter = await initializeCounter();
   });
 });
 ```
@@ -74,22 +81,39 @@ const provider = anchor.Provider.env();
 anchor.setProvider(provider);
 ```
 
-First, we set our provider to a variable so we can reference it here and below.
+First, we set our provider to a variable so we can reference it later.
+
+```js
+const program = anchor.workspace.SimpleCounter;
+```
+
+We set the program to a variable so we can reference it later as well.
+
+```js
+const initializeCounter = async () => {
+  // snip
+};
+```
+
+We created a new async function that will run our counter initialization. We
+could have done this directly in the test code, but we're going to want to
+initialize a fresh counter for future tests, so we might as well create a
+function for it now.
+
+Let's dig into each piece of this function.
 
 ```js
 const counter = anchor.web3.Keypair.generate();
 ```
 
-The next change we made is to generate a new keypair. This reaches in to the
-anchor library for the `Keypair` class and calls `generate()` to create a new
-one.
+Here, we set a `counter` variable to a newly generated public/private keypair.
 
-By keypair, anchor means it is generating a new public and private key. This
-keypair will represent the account that we are going to store our counter in. We
-then get the public key of that keypair.
+This keypair will represent the account that we are going to store our counter
+in. Every time we call this function, we'll generate a new keypair, meaning that
+each test that references this function will have a fresh counter state.
 
 ```js
-const tx = await program.rpc.initialize({
+await program.rpc.initialize({
   accounts: {
     counter: counter.publicKey,
     user: provider.wallet.publicKey,
@@ -99,7 +123,7 @@ const tx = await program.rpc.initialize({
 });
 ```
 
-Finally, we edit our instruction call to include our accounts. Note that
+Finally, we an our initialize call that includes our accounts. Note that
 whenever we include an account in the set of accounts, we have to reference the
 public key.
 
@@ -108,11 +132,9 @@ This will tell our program to initialize an account with this public key
 address.
 
 The second account is our user. When we spin up our provider earlier, Anchor
-generates a wallet that is used for testing these transactions. This wallet is
-basically what you would use when you transact on Solana normally, and has its
-own public and private keys. We include the public key of the wallet's keypair
-here to tell our program that we want to use the Anchor generated wallet for
-initializing our program.
+generates a waW private keys. We include the public key of the wallet's keypair
+here to tell our program that we want to use the Anchor generated wallet to pay
+for initializing our program.
 
 The third account is the system program. Anchor includes, as part of its
 package, a constant value for the program id of the system program. We include
@@ -123,8 +145,8 @@ system program has to be included as a signer of the transaction where it is
 created.
 
 If we look back to our program, we'll see that the user account has the `Signer`
-type. Why don't we have to include it as a signer? That's because our
-`provider.wallet` is already signing the transaction, so the user account is
+type. Why don't we have to include `provider.wallet` as a signer? That's because
+our `provider.wallet` is already signing the transaction, so the user account is
 implicitly a signer.
 
 Let's run our tests!
@@ -135,18 +157,15 @@ anchor test
 
 We should see the following output:
 
-```
+````
   simple-counter
 Your transaction signature <some-hash>
     ✓ Is initialized! (359ms)
 
 
   1 passing (361ms)
-```
-
-Our tests are currently passing, as expected!
-
-# Did we actually test anything?
+```import { assert } from "chai";
+## Did we actually test anything?
 
 We successfully ran the transaction, but we didn't actually check to see if the
 counter has the data we expect! This is important to ensuring that, as we extend
@@ -157,12 +176,12 @@ to do is import `assert` from `chai`. At the top of our file, add:
 
 ```js
 import { assert } from "chai";
-```
+````
 
 Finally, below where we call our transaction, we can add the following code:
 
 ```js
-const counterData = await program.account.counter.fetch(counter.publicKey);
+const counterData = await program.account.counter.fetch(counter);
 
 assert.ok(counterData.count.eq(new anchor.BN(0)));
 ```
@@ -207,4 +226,4 @@ simple-counter
 ```
 
 We can be pretty sure at this point that we are initializing our counter with
-the correct value! Let's change it back to `anchor.BN(0)` and move on.
+the correct value! Change it back to `anchor.BN(0)` before we move on..
