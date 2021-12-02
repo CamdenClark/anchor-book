@@ -2,18 +2,19 @@ Now that we can initialize our counter to zero, let's implement the ability to
 increment the counter.
 
 We'll start with the tests that test this functionality, then actually implement
-it in the program and watch the tests pass. This is a good way to ensure that
-you're thinking about the design constraints ahead of time!
+it in the program and watch the tests pass.
+
+{% hint style="info" %} You can find the code that covers this section
+[here](https://github.com/CamdenClark/anchor-book-code/tree/main/simple-counter-2)
+{% endhint %}
 
 # At a high level
 
 Our initialize instruction creates a new account and sets its `count` data to 0.
 What does it mean to increment our counter?
 
-We want to mutate the `count` data in our existing counter account to increase
-its value by one. Specifically, we want to do this in a new instruction. We
-don't want to increment the value of our counter in the same instruction that we
-initialize it in.
+We want an `increment` instruction that allows us to mutate the `count` data in
+our existing counter account, increasing its value by one.
 
 What would our tests look like? We will want to run the initialization of a
 counter account first, like our existing tests. But then, we'll need to reuse
@@ -35,55 +36,21 @@ initialized, we don't need the system program for anything.
 Let's write our new test:
 
 ```js
-import * as anchor from "@project-serum/anchor";
-import { assert } from "chai";
+it("Increments the counter", async () => {
+  const counter = await initializeCounter();
 
-describe("simple-counter", () => {
-  // Configure the client to use the local cluster.
-  anchor.setProvider(anchor.Provider.env());
+  await program.rpc.increment({ accounts: { counter } });
 
-  const counter = anchor.web3.Keypair.generate();
-  const program = anchor.workspace.SimpleCounter;
+  const counterData = await program.account.counter.fetch(counter);
 
-  it("Initializes the counter to 0", async () => {
-    await program.rpc.initialize({
-      accounts: {
-        counter: counter.publicKey,
-        user: anchor.Provider.env().wallet.publicKey,
-        systemProgram: anchor.web3.SystemProgram.programId,
-      },
-      signers: [counter],
-    });
-
-    const counterData = await program.account.counter.fetch(counter.publicKey);
-
-    assert.ok(counterData.count.eq(new anchor.BN(0)));
-  });
-
-  it("Increments the counter", async () => {
-    await program.rpc.increment({
-      accounts: {
-        counter: counter.publicKey,
-      },
-    });
-
-    const counterData = await program.account.counter.fetch(counter.publicKey);
-
-    assert.ok(counterData.count.eq(new anchor.BN(1)));
-  });
+  assert.ok(counterData.count.eq(new anchor.BN(1)));
 });
 ```
 
-We've made a few changes here from the last chapter.
+We reuse the same function that will initialize a fresh counter for us.
 
-First, we've broken out the counter and the program out of the `it` block, so
-they can be referenced across multiple `it` blocks.
-
-We add a new `it` block to describe what incrementing the counter should look
-like.
-
-Inside this it block, we first call our new instruction: `increment`. We only
-include the counter account, like we described above.
+We then call our new instruction: `increment`. We only include the counter
+account, as we described above.
 
 Similar to the initialization test, we fetch the data, and assert that the
 `count` value is at `1` instead of `0`, which means that our instruction has
@@ -107,8 +74,7 @@ Let's run `anchor test` to see what happens:
 
 Our first test passes, but then the second test fails because `increment` is not
 a function. This is expected: we haven't created our new instruction handler.
-Let's implement this on the plet counter = &mut ctx.accounts.counter;
-counter.count += 1; Ok(())rogram side now.
+Let's implement this on the program side now.
 
 # Implementing the `increment` instruction handler
 
@@ -141,7 +107,8 @@ change the decorator we used when initializing the `counter` account previously.
 We don't need to do any account initialization, rent paying, or space
 allocation, but we do need to get a mutable reference to the `counter` data.
 Tagging the account with `#[account(mut)]` will make sure that Anchor saves our
-changes after we mutate the data inside the counter.
+changes after we mutate the data inside the counter. **If you don't have that
+tag, the data won't save after being mutated in the instruction handler!**
 
 ## Instruction handler
 
@@ -156,8 +123,9 @@ pub fn increment(ctx: Context<Increment>) -> ProgramResult {
 ```
 
 Like the initialize handler, we get a mutable reference to the counter account
-data. We increment the count value, and return `Ok(())`. Anchor, under the hood,
-will save our changes to the counter account data.
+data. Instead of setting the value to 0, we increment the count value, and
+return `Ok(())`. Anchor, under the hood, will save our changes to the counter
+account data because we grabbed a mutable reference to the counter account.
 
 Let's re-run our tests with `anchor test`.
 

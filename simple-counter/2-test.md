@@ -68,7 +68,7 @@ const initializeCounter = async () => {
 };
 
 describe("simple-counter", () => {
-  it("Gets initialized!", async () => {
+  it("Initializes the counter to 0", async () => {
     const counter = await initializeCounter();
   });
 });
@@ -160,7 +160,7 @@ We should see the following output:
 ````
   simple-counter
 Your transaction signature <some-hash>
-    ✓ Is initialized! (359ms)
+    ✓ Initializes the counter to 0 (359ms)
 
 
   1 passing (361ms)
@@ -202,7 +202,7 @@ Let's run `anchor test` again.
 
 ```bash
   simple-counter
-    ✓ Is initialized! (388ms)
+    ✓ Initializes the counter to 0 (388ms)
 
 
   1 passing (391ms)
@@ -213,14 +213,14 @@ Just for fun, let's see what happens if we change `anchor.BN(0)` to
 
 ```bash
 simple-counter
-    1) Is initialized!
+    1) Initializes the counter to 0
 
 
   0 passing (507ms)
   1 failing
 
   1) simple-counter
-       Is initialized!:
+       Initializes the counter to 0:
      AssertionError: expected false to be truthy
      ...
 ```
