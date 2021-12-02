@@ -17,7 +17,7 @@ You'll see the following:
 ```json
 {
   "version": "0.0.0",
-  "name": "basic",
+  "name": "first-program",
   "instructions": [
     {
       "name": "initialize",

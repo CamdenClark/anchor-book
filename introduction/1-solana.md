@@ -21,7 +21,8 @@ Anchor wants to minimize the cognitive load on programmers to develop Solana
 applications.
 
 Writing programs on Solana without using Anchor is really difficult. There's a
-ton of boilerplate, you have to serialize and deserialize to bytes yourself.
+ton of boilerplate: for example, you have to serialize and deserialize state to
+bytes yourself.
 
 Anchor is the main choice for developers currently writing their projects on
 Solana, so it makes sense for beginners to Solana to pick Anchor to develop
