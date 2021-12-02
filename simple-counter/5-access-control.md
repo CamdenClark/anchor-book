@@ -3,6 +3,10 @@ initialization.
 
 But what if we only wanted one account to be able to increment?
 
+{% hint style="info" %} You can find the code that covers this section
+[here](https://github.com/CamdenClark/anchor-book-code/tree/main/simple-counter-4)
+{% endhint %}
+
 # Access control
 
 How do we implement access control into our existing counter program?
@@ -24,27 +28,30 @@ third test like so:
 
 ```js
 it("Increments the counter", async () => {
+  const counter = await initializeCounter(2);
+
   await program.rpc.increment({
-    accounts: {
-      counter: counter.publicKey,
-      authority: provider.wallet.publicKey,
-    },
+    accounts: { counter, authority: provider.wallet.publicKey },
   });
 
-  const counterData = await program.account.counter.fetch(counter.publicKey);
+  const counterData = await program.account.counter.fetch(counter);
 
   assert.ok(counterData.count.eq(new anchor.BN(3)));
 });
+it("Another user trying to increment throws an error", async () => {
+  const counter = await initializeCounter(2);
 
-it("Another user attempting to increment throws an error", async () => {
   let transactionFailed = false;
+
+  const anotherUser = anchor.web3.Keypair.generate();
 
   try {
     await program.rpc.increment({
       accounts: {
-        counter: counter.publicKey,
-        authority: anchor.web3.Keypair.generate().publicKey,
+        counter,
+        authority: anotherUser.publicKey,
       },
+      signers: [anotherUser],
     });
   } catch {
     transactionFailed = true;
@@ -99,10 +106,7 @@ error.
   1) simple-counter
        Another user attempting to increment throws an error:
      AssertionError: expected false to be truthy
-      at /home/camden/anchor-book-code/simple-counter/tests/simple-counter.ts:57:12
-      at Generator.next (<anonymous>)
-      at fulfilled (tests/simple-counter.ts:24:58)
-      at processTicksAndRejections (node:internal/process/task_queues:96:5)
+     ...
 ```
 
 Our next job is to actually implement access control!
@@ -148,21 +152,28 @@ its public key.
 Let's run `anchor test`.
 
 ```bash
-  1 passing (192ms)
-  2 failing
+  0 passing (222ms)
+  3 failing
 
   1) simple-counter
-       Initializes the counter to 2:
+       Initializes the counter to 0:
      Error: 163: Failed to deserialize the account
       at Function.parse (node_modules/@project-serum/anchor/src/error.ts:41:14)
-      at Object.rpc [as initialize] (node_modules/@project-serum/anchor/src/program/namespace/rpc.ts:23:42)
+      at Object.rpc [as initialize] (node_modules/@project-serum/anchor/src/program/namespace/rpc.ts:28:42)
       at processTicksAndRejections (node:internal/process/task_queues:96:5)
 
   2) simple-counter
        Increments the counter:
-     Error: 167: The given account is not owned by the executing program
+     Error: 163: Failed to deserialize the account
       at Function.parse (node_modules/@project-serum/anchor/src/error.ts:41:14)
-      at Object.rpc [as increment] (node_modules/@project-serum/anchor/src/program/namespace/rpc.ts:23:42)
+      at Object.rpc [as initialize] (node_modules/@project-serum/anchor/src/program/namespace/rpc.ts:28:42)
+      at processTicksAndRejections (node:internal/process/task_queues:96:5)
+
+  3) simple-counter
+       Another user trying to increment throws an error:
+     Error: 163: Failed to deserialize the account
+      at Function.parse (node_modules/@project-serum/anchor/src/error.ts:41:14)
+      at Object.rpc [as initialize] (node_modules/@project-serum/anchor/src/program/namespace/rpc.ts:28:42)
       at processTicksAndRejections (node:internal/process/task_queues:96:5)
 ```
 
@@ -177,10 +188,10 @@ context.
 pub counter: Account<'info, Counter>,
 ```
 
-The space is set to `8 + 8` because of the 8 byte discriminator, and the 8 byte
-count property. We've now added a new property, so the amount of space we
-allocate isn't enough to store our `Pubkey` object. But what's the right amount
-to store?
+The space is set to `8 + 8` because, stored in the account data is the 8 byte
+discriminator, and the 8 byte count property. We've now added a new property, so
+the amount of space we allocate isn't enough to store our `Pubkey` object. But
+what's the right amount to store?
 
 Solana uses 256-bit public keys, and 256 bits is equal to 32 bytes. That seems
 like a good thing to try! Let's set our space to `8 + 8 + 32`.
@@ -205,10 +216,7 @@ simple-counter
   1) simple-counter
        Another user attempting to increment throws an error:
      AssertionError: expected false to be truthy
-      at /home/camden/anchor-book-code/simple-counter/tests/simple-counter.ts:57:12
-      at Generator.next (<anonymous>)
-      at fulfilled (tests/simple-counter.ts:24:58)
-      at processTicksAndRejections (node:internal/process/task_queues:96:5)
+     ...
 ```
 
 Now we're back to the original state of the tests: only the last one fails

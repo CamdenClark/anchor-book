@@ -8,6 +8,10 @@ increment a counter from 99 to 100, it would report a similar error.
 
 Let's see how we could change our program to support this feature.
 
+{% hint style="info" %} You can find the code that covers this section
+[here](https://github.com/CamdenClark/anchor-book-code/tree/main/simple-counter-5)
+{% endhint %}
+
 # Initialization
 
 We'll tackle making it so you can't initialize a counter to 100 or above first.
@@ -24,14 +28,7 @@ it("Initializing counter to 100 or above throws an error", async () => {
   let transactionFailed = false;
 
   try {
-    await program.rpc.initialize(new anchor.BN(100), {
-      accounts: {
-        counter: counter.publicKey,
-        user: provider.wallet.publicKey,
-        systemProgram: anchor.web3.SystemProgram.programId,
-      },
-      signers: [counter],
-    });
+    await initializeCounter(100);
   } catch {
     transactionFailed = true;
   }
@@ -46,42 +43,16 @@ will fail if we don't throw an error when we attempt to initialize to 100.
 Let's run `anchor test`.
 
 ```
-  1 passing (721ms)
-  3 failin>g
+  3 passing (2s)
+  1 failing
 
   1) simple-counter
        Initializing counter to 100 or above throws an error:
      AssertionError: expected false to be truthy
      ...snip...
-
-  2) simple-counter
-       Initializes the counter to 2:
-     Error: failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x0
-      at Connection.sendEncodedTransaction (node_modules/@solana/web3.js/src/connection.ts:3689:13)
-      at processTicksAndRejections (node:internal/process/task_queues:96:5)
-      at Connection.sendRawTransaction (node_modules/@solana/web3.js/src/connection.ts:3649:20)
-      at sendAndConfirmRawTransaction (node_modules/@solana/web3.js/src/util/send-and-confirm-raw-transaction.ts:27:21)
-      at Provider.send (node_modules/@project-serum/anchor/src/provider.ts:114:18)
-      at Object.rpc [as initialize] (node_modules/@project-serum/anchor/src/program/namespace/rpc.ts:19:23)
-
-  3) simple-counter
-       Increments the counter:
-     AssertionError: expected false to be truthy
-     ...snip...
 ```
 
-We see that we have 3 failing tests. The reason for this is that, since the
-first call in our new test to initialize still succeeds, the assumptions our
-other tests are based on fails.
-
-What we are doing here is an anti-pattern in constructing tests: we want our
-test state to be as isolated as possible. What we could have done instead is
-construct tests that construct their own counter account data and only depend on
-that state, not on other tests passing. We'll rectify this later in our
-tutorials, but showing the anti-pattern here helps you see why this is a good
-idea!
-
-Either way, let's try to make the test we created pass.
+We see that our newly created test fails.
 
 ## Make the test pass
 
@@ -113,7 +84,7 @@ error result.
 Now, let's run `anchor test` again.
 
 ```
-  4 passing (851ms)
+  4 passing (3s)
 ```
 
 Awesome!
@@ -121,42 +92,19 @@ Awesome!
 # The final test
 
 We made it so the counter can't be initialized to 100 or above, but we also
-wanted to make it so you can't increment it to 100 or above either. Let's adjust
-our existing tests, then add an additional test for this.
+wanted to make it so you can't increment it to 100 or above either. Let's add
+one last test for this.
 
 ```js
-it("Initializes the counter to 98", async () => {
-  await program.rpc.initialize(new anchor.BN(98), {
-    accounts: {
-      counter: counter.publicKey,
-      user: provider.wallet.publicKey,
-      systemProgram: anchor.web3.SystemProgram.programId,
-    },
-    signers: [counter],
-  });
-
-  const counterData = await program.account.counter.fetch(counter.publicKey);
-
-  assert.ok(counterData.count.eq(new anchor.BN(2)));
-});
-
-it("Increments the counter", async () => {
-  await program.rpc.increment({
-    accounts: {
-      counter: counter.publicKey,
-      authority: provider.wallet.publicKey,
-    },
-  });
-
-  const counterData = await program.account.counter.fetch(coun>
-});
-
 it("Incrementing above 99 fails", async () => {
+  const counter = await initializeCounter(99);
+
   let transactionFailed = false;
+
   try {
     await program.rpc.increment({
       accounts: {
-        counter: counter.publicKey,
+        counter,
         authority: provider.wallet.publicKey,
       },
     });
@@ -178,4 +126,6 @@ if counter.count >= 99 {
 
 and if we run `anchor test`, we should see all of our tests pass.
 
-... _TODO_: Show passing tests
+```
+  5 passing (2s)
+```
