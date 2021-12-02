@@ -1,6 +1,6 @@
-We'll dip our toes in today and initialize our first Anchor program. We'll learn
-a little bit about the structure of Anchor projects, how to test them, and how
-we bridge between the frontend and the program code.
+We'll dip our toes in and initialize our first Anchor program. You'll learn a
+little bit about the structure of Anchor projects, how to test them, and how we
+bridge between the frontend and the program code.
 
 The code samples for this can be found
 [here](https://github.com/CamdenClark/anchor-book-code/tree/main/first-program)
@@ -10,11 +10,15 @@ The code samples for this can be found
 First, we'll initialize a new anchor project.
 
 ```
-anchor init first-program --typescript
+anchor init first-program
 ```
 
 This command will generate a new anchor project under the directory
 `first-program`, with the tests written in typescript.
+
+{% hint style="info" %} If you want to have pure javascript tests, you can
+supply the `-j` flag. This guide follows using typescript as that is now that
+Anchor default. {% endhint %}
 
 # The main pieces
 

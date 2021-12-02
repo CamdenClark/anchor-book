@@ -14,16 +14,15 @@
 - [Breaking down the tests](first-program/2-tests.md)
 - [The IDL](first-program/3-idl.md)
 - [Deployment](first-program/4-deployment.md)
-- [A simple client](first-program/5-client.md)
 
 ## Building a simple counter
 
-- [Initializing a counter](accounts/1-initialize.md)
-- [Writing a basic test](accounts/2-test.md)
-- [Incrementing the counter](accounts/3-increment.md)
-- [Initialize the counter to a value](accounts/4-arguments.md)
-- [Control access to the counter](accounts/5-access-control.md)
-- [Preventing a negative counter](accounts/6-errors.md)
+- [Initializing a counter](simple-counter/1-initialize.md)
+- [Writing a basic test](simple-counter/2-test.md)
+- [Incrementing the counter](simple-counter/3-increment.md)
+- [Initialize the counter to a value](simple-counter/4-arguments.md)
+- [Control access to the counter](simple-counter/5-access-control.md)
+- [Preventing a negative counter](simple-counter/6-errors.md)
 
 ## Frontend
 
@@ -35,9 +34,19 @@
 
 ## Cross-program invocation
 
+- Puppet program?
+
 ## Program-derived Accounts
 
+- Initializing PDAs
+- Calling PDAs
+
 ## SPL Tokens
+
+- SPL Token exploration
+- Init a mint
+- Mint tokens
+- Transfer tokens
 
 ## Constraints
 
