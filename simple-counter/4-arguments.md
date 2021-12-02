@@ -7,61 +7,70 @@ teach you how to pass arguments more generally to your instructions.
 
 Let's start with the tests!
 
+{% hint style="info" %} You can find the code that covers this section
+[here](https://github.com/CamdenClark/anchor-book-code/tree/main/simple-counter-3)
+{% endhint %}
+
 # Adjusting our tests
 
 Our test changes here will be really simple. We are going to add the value to
 the instruction caller, and then change our assertions to reflect that.
 
 ```js
-describe("simple-counter", () => {
-  // Configure the client to use the local cluster.
-  const provider = anchor.Provider.env();
-  anchor.setProvider(provider);
+import * as anchor from "@project-serum/anchor";
+import { assert } from "chai";
 
+const provider = anchor.Provider.env();
+anchor.setProvider(provider);
+
+const program = anchor.workspace.SimpleCounter;
+
+const initializeCounter = async (amount: number) => {
   const counter = anchor.web3.Keypair.generate();
-  const program = anchor.workspace.SimpleCounter;
 
+  await program.rpc.initialize(new anchor.BN(amount), {
+    accounts: {
+      counter: counter.publicKey,
+      user: provider.wallet.publicKey,
+      systemProgram: anchor.web3.SystemProgram.programId,
+    },
+    signers: [counter],
+  });
+
+  return counter.publicKey;
+};
+
+describe("simple-counter", () => {
   it("Initializes the counter to 2", async () => {
-    await program.rpc.initialize(2, {
-      accounts: {
-        counter: counter.publicKey,
-        user: anchor.Provider.env().wallet.publicKey,
-        systemProgram: anchor.web3.SystemProgram.programId,
-      },
-      signers: [counter],
-    });
+    const counter = await initializeCounter(2);
 
-    const counterData = await program.account.counter.fetch(counter.publicKey);
+    const counterData = await program.account.counter.fetch(counter);
 
     assert.ok(counterData.count.eq(new anchor.BN(2)));
   });
-
   it("Increments the counter", async () => {
-    await program.rpc.increment({
-      accounts: {
-        counter: counter.publicKey,
-      },
-    });
+    const counter = await initializeCounter(2);
 
-    const counterData = await program.account.counter.fetch(counter.publicKey);
+    await program.rpc.increment({ accounts: { counter } });
+
+    const counterData = await program.account.counter.fetch(counter);
 
     assert.ok(counterData.count.eq(new anchor.BN(3)));
   });
 });
 ```
 
-There are three changes here:
+First, we add in a parameter to our `initializeCounter` function that is the
+number the counter should be initialized to. Then, in the `initialize`
+instruction call, we add the amount parameter. We have to pass it in as
+`anchor.BN`, so we have to do `new anchor.BN(amount)` to get it to work on the
+other side.
 
 ```js
-it("Initializes the counter to 2", async () => {
-  await program.rpc.initialize(new anchor.BN(2), {
-    // ...
-  });
-});
+const counter = await initializeCounter(2);
 ```
 
-First, we add in a parameter to our `initialize` function before the accounts
-that represents the number that we want to initialize the counter to.
+We set the parameter we created for `initializeCounter` to `2` in both tests.
 
 ```js
 assert.ok(counterData.count.eq(new anchor.BN(2)));
