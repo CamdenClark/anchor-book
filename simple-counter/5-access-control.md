@@ -26,7 +26,7 @@ currently) that will validate our access control piece.
 We'll write some code and then explain. We'll edit our second test and add a
 third test like so:
 
-```js
+```javascript
 it("Increments the counter", async () => {
   const counter = await initializeCounter(2);
 

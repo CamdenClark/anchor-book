@@ -23,7 +23,7 @@ adjustment so we don't break it in the future.
 
 In our test file, add above the very first test:
 
-```js
+```javascript
 it("Initializing counter to 100 or above throws an error", async () => {
   let transactionFailed = false;
 
@@ -95,7 +95,7 @@ We made it so the counter can't be initialized to 100 or above, but we also
 wanted to make it so you can't increment it to 100 or above either. Let's add
 one last test for this.
 
-```js
+```javascript
 it("Incrementing above 99 fails", async () => {
   const counter = await initializeCounter(99);
 

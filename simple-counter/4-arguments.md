@@ -16,7 +16,7 @@ Let's start with the tests!
 Our test changes here will be really simple. We are going to add the value to
 the instruction caller, and then change our assertions to reflect that.
 
-```js
+```javascript
 import * as anchor from "@project-serum/anchor";
 import { assert } from "chai";
 
@@ -66,13 +66,13 @@ instruction call, we add the amount parameter. We have to pass it in as
 `anchor.BN`, so we have to do `new anchor.BN(amount)` to get it to work on the
 other side.
 
-```js
+```javascript
 const counter = await initializeCounter(2);
 ```
 
 We set the parameter we created for `initializeCounter` to `2` in both tests.
 
-```js
+```javascript
 assert.ok(counterData.count.eq(new anchor.BN(2)));
 //...
 assert.ok(counterData.count.eq(new anchor.BN(3)));

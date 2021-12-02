@@ -6,7 +6,7 @@
 
 Let's look at our tests at `tests/simple-counter.ts`
 
-```js
+```javascript
 import * as anchor from '@project-serum/anchor';
 
 describe('simple-counter', () => {
@@ -44,7 +44,7 @@ We have three accounts to include: the counter, the user, and the system
 program. Let's write some code first, then we can explain in detail what's going
 on at each step.
 
-```js
+```javascript
 import * as anchor from "@project-serum/anchor";
 
 const provider = anchor.Provider.env();
@@ -76,20 +76,20 @@ describe("simple-counter", () => {
 
 We've changed a few things here, so let's dive in.
 
-```js
+```javascript
 const provider = anchor.Provider.env();
 anchor.setProvider(provider);
 ```
 
 First, we set our provider to a variable so we can reference it later.
 
-```js
+```javascript
 const program = anchor.workspace.SimpleCounter;
 ```
 
 We set the program to a variable so we can reference it later as well.
 
-```js
+```javascript
 const initializeCounter = async () => {
   // snip
 };
@@ -102,7 +102,7 @@ function for it now.
 
 Let's dig into each piece of this function.
 
-```js
+```javascript
 const counter = anchor.web3.Keypair.generate();
 ```
 
@@ -112,7 +112,7 @@ This keypair will represent the account that we are going to store our counter
 in. Every time we call this function, we'll generate a new keypair, meaning that
 each test that references this function will have a fresh counter state.
 
-```js
+```javascript
 await program.rpc.initialize({
   accounts: {
     counter: counter.publicKey,
@@ -174,13 +174,13 @@ our program, we can ensure that the right accounts have the right data.
 To do that, we'll need to add an assertion to our tests. The first thing we need
 to do is import `assert` from `chai`. At the top of our file, add:
 
-```js
+```javascript
 import { assert } from "chai";
 ````
 
 Finally, below where we call our transaction, we can add the following code:
 
-```js
+```javascript
 const counterData = await program.account.counter.fetch(counter);
 
 assert.ok(counterData.count.eq(new anchor.BN(0)));

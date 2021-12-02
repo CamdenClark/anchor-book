@@ -35,7 +35,7 @@ initialized, we don't need the system program for anything.
 
 Let's write our new test:
 
-```js
+```javascript
 it("Increments the counter", async () => {
   const counter = await initializeCounter();
 
